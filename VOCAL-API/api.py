@@ -43,25 +43,19 @@ def translate_text(text, target_language="fr"):
     return llm.generate_content(prompt).text
 
 # Route API pour traiter l'audio
+
 @app.post("/transcribe/")
 async def transcribe(file: UploadFile = File(...)):
-    try:
-        # Sauvegarder le fichier audio temporairement
-        with open("temp.wav", "wb") as buffer:
-            buffer.write(await file.read())
+    # Utilise /tmp pour stocker le fichier temporaire
+    temp_file_path = "/tmp/temp.wav"
+    with open(temp_file_path, "wb") as buffer:
+        buffer.write(await file.read())
+    
+    # Utiliser le chemin temporaire pour la transcription
+    transcript = transcribe_audio(temp_file_path)
+    translation = translate_text(transcript)
 
-        # Effectuer la transcription et la traduction
-        transcript = transcribe_audio("temp.wav")
-        translation = translate_text(transcript)
-
-        # Supprimer le fichier audio après traitement
-        os.remove("temp.wav")
-        
-        # Retourner la transcription et la traduction
-        return {"transcription": transcript, "translation": translation}
-
-    except Exception as e:
-        return {"error": str(e)}
+    return {"transcription": transcript, "translation": translation}
 
 
 # Lancer le serveur FastAPI
