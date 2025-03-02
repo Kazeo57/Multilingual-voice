@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai 
 import speech_recognition as sr
+from pydub import AudioSegment
 import os
 google_api_key=os.getenv('GOOGLE_API_KEY')
 app = FastAPI()
@@ -23,7 +24,21 @@ app.add_middleware(
 genai.configure(api_key=google_api_key)
 llm=genai.GenerativeModel('gemini-1.5-flash')
 # Fonction pour la transcription vocale
+
+
+
+def convert_to_wav(audio_file_path):
+    # Ouvrir le fichier audio (supposons qu'il est en MP3 par exemple)
+    audio = AudioSegment.from_file(audio_file_path)
+    # Sauvegarder en WAV
+    wav_path = "converted_audio.wav"
+    audio.export(wav_path, format="wav")
+    return wav_path
+
+
 def transcribe_audio(audio_file):
+    if not audio_file.lower().endswith(".wav"):
+        audio_file = convert_to_wav(audio_file)
     recognizer = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
         audio = recognizer.record(source)
