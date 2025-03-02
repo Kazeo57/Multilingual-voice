@@ -27,7 +27,14 @@ def transcribe_audio(audio_file):
     recognizer = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
         audio = recognizer.record(source)
-    return recognizer.recognize_google(audio)
+    try:
+        transcript = recognizer.recognize_google(audio)
+    except sr.UnknownValueError:
+        transcript = "Sorry, I couldn't understand the audio."
+    except sr.RequestError as e:
+        transcript = f"Could not request results from Google Speech Recognition service; {e}"
+    return transcript
+
 
 # Fonction pour la traduction avec OpenAI
 def translate_text(text, target_language="fr"):
@@ -43,8 +50,11 @@ async def transcribe(file: UploadFile = File(...)):
     
     transcript = transcribe_audio("temp.wav")
     translation = translate_text(transcript)
+    
+    os.remove("temp.wav")  # Supprimer le fichier temporaire
 
     return {"transcription": transcript, "translation": translation}
+
 
 # Lancer le serveur FastAPI
 if __name__ == "__main__":
