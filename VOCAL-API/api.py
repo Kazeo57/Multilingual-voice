@@ -8,7 +8,7 @@ google_api_key=os.getenv('GOOGLE_API_KEY')
 app = FastAPI()
 origins= [
     "http://localhost:5173",
-    "https://multilingualvoice.vercel.app/"
+    "https://multilingualvoice.vercel.app"
 ]
 
 # Ajout du middleware CORS
@@ -31,7 +31,7 @@ def convert_to_wav(audio_file_path):
     # Ouvrir le fichier audio (supposons qu'il est en MP3 par exemple)
     audio = AudioSegment.from_file(audio_file_path)
     # Sauvegarder en WAV
-    wav_path = "converted_audio.wav"
+    wav_path = "/tmp/converted_audio.wav"
     audio.export(wav_path, format="wav")
     return wav_path
 
