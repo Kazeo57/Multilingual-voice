@@ -1,9 +1,24 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai 
 import speech_recognition as sr
 import os
 google_api_key=os.getenv('GOOGLE_API_KEY')
 app = FastAPI()
+origins= [
+    "http://localhost:5173",
+    "https://multilingualvoice.vercel.app/"
+]
+
+# Ajout du middleware CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Liste des origines autorisées
+    allow_credentials=True,
+    allow_methods=["*"],  # Autoriser toutes les méthodes HTTP
+    allow_headers=["*"],  # Autoriser tous les headers
+)
+
 
 genai.configure(api_key=google_api_key)
 llm=genai.GenerativeModel('gemini-1.5-flash')
