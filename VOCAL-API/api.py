@@ -7,12 +7,18 @@ import os
 import logging
 from typing import Dict, Any
 import tempfile
+from dotenv import load_dotenv
 
-# Configuration du logging
+from pydub import AudioSegment
+print(AudioSegment.converter)
+
+
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Récupération de la clé API depuis les variables d'environnement
+load_dotenv()
 google_api_key = os.getenv('GOOGLE_API_KEY')
 if not google_api_key:
     logger.error("GOOGLE_API_KEY n'est pas définie dans les variables d'environnement")
@@ -136,46 +142,29 @@ async def translate_text(text: str, target_language: str = "fr") -> str:
 
 @app.post("/transcribe/", response_model=Dict[str, Any])
 async def transcribe_endpoint(file: UploadFile = File(...), target_language: str = "fr"):
-    """
-    Endpoint pour transcrire un fichier audio et traduire le texte.
-    
-    Args:
-        file: Fichier audio à traiter
-        target_language: Langue cible pour la traduction (défaut: français)
-        
-    Returns:
-        Dictionnaire contenant la transcription et la traduction
-    """
     try:
         # Création d'un fichier temporaire
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_file_path = temp_file.name
-            # Écriture du contenu du fichier
+            # Écriture du contenu du fichier audio dans le fichier temporaire
             content = await file.read()
-            temp_file.write(content)
-        
-        # Traitement du fichier
-        transcript = await transcribe_audio(temp_file_path)
-        translation = await translate_text(transcript, target_language)
-        
-        return {
-            "success": True,
-            "transcription": transcript, 
-            "translation": translation
-        }
-    except HTTPException:
-        raise
+            with open(temp_file_path, "wb") as f:
+                f.write(content)
+
+        # Transcription de l'audio
+        transcription = await transcribe_audio(temp_file_path)
+
+        # Traduction de la transcription
+        translated_text = await translate_text(transcription, target_language)
+
+        return {"transcription": transcription, "translation": translated_text}
+
     except Exception as e:
-        logger.error(f"Erreur dans l'endpoint /transcribe/: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du traitement: {str(e)}")
-    finally:
-        # Nettoyage du fichier temporaire
-        try:
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-                logger.debug(f"Fichier temporaire supprimé: {temp_file_path}")
-        except:
-            pass
+
+
+
+
 
 @app.get("/health")
 async def health_check():
@@ -188,7 +177,7 @@ async def health_check():
     return {"status": "OK", "service": "transcription-api"}
 
 # Lancer le serveur FastAPI
-if __name__ == "_main_":
+if __name__ == "__main__":
     import uvicorn
     
     # Configuration du serveur
