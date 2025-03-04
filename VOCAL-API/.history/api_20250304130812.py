@@ -38,8 +38,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Configuration CORS
 origins = [
     "http://localhost:5173",
-    "https://multilingualvoice.vercel.app",
-    "https://multilingualvoice.onrender.com"
+    "https://multilingualvoice.vercel.app"
 ]
 
 app.add_middleware(
