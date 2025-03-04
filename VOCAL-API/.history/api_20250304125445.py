@@ -149,6 +149,7 @@ async def translate_text(text: str, target_language: str = "fr") -> str:
 async def transcribe_endpoint(file: UploadFile = File(...), target_language: str = "fr"):
     try:
         # Création d'un fichier temporaire
+<<<<<<< HEAD
         temp_file_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(temp_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -164,6 +165,23 @@ async def transcribe_endpoint(file: UploadFile = File(...), target_language: str
         }
     except HTTPException:
         raise
+=======
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file_path = temp_file.name
+            # Écriture du contenu du fichier audio dans le fichier temporaire
+            content = await file.read()
+            with open(temp_file_path, "wb") as f:
+                f.write(content)
+
+        # Transcription de l'audio
+        transcription = await transcribe_audio(temp_file_path)
+
+        # Traduction de la transcription
+        translated_text = await translate_text(transcription, target_language)
+
+        return {"transcription": transcription, "translation": translated_text}
+
+>>>>>>> 40bb094c48cbf702b08d21b720270e752ae0034b
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors du traitement: {str(e)}")
 
