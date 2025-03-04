@@ -1,11 +1,10 @@
-import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai 
 import speech_recognition as sr
 from pydub import AudioSegment
 import os
-from dotenv import load_dotenv
+from do
 import logging
 from typing import Dict, Any
 import tempfile
@@ -27,8 +26,6 @@ app = FastAPI(
     description="Une API pour transcrire des fichiers audio et traduire le texte",
     version="1.0.0"
 )
-UPLOAD_DIR="voices"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Configuration CORS
 origins = [
@@ -88,11 +85,10 @@ async def transcribe_audio(audio_file: str) -> str:
         Texte transcrit
     """
     try:
-        print("ICI -------", audio_file)
         # Vérification et conversion si nécessaire
         if not audio_file.lower().endswith(".wav"):
             audio_file = await convert_to_wav(audio_file)
-
+        
         # Transcription
         recognizer = sr.Recognizer()
         with sr.AudioFile(audio_file) as source:
@@ -154,9 +150,11 @@ async def transcribe_endpoint(file: UploadFile = File(...), target_language: str
     """
     try:
         # Création d'un fichier temporaire
-        temp_file_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(temp_file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file_path = temp_file.name
+            # Écriture du contenu du fichier
+            content = await file.read()
+            temp_file.write(content)
         
         # Traitement du fichier
         transcript = await transcribe_audio(temp_file_path)

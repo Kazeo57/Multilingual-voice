@@ -28,7 +28,6 @@ app = FastAPI(
     version="1.0.0"
 )
 UPLOAD_DIR="voices"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Configuration CORS
 origins = [

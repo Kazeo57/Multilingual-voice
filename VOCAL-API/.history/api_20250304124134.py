@@ -27,8 +27,7 @@ app = FastAPI(
     description="Une API pour transcrire des fichiers audio et traduire le texte",
     version="1.0.0"
 )
-UPLOAD_DIR="voices"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR=""
 
 # Configuration CORS
 origins = [

@@ -1,4 +1,3 @@
-import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai 
@@ -27,8 +26,6 @@ app = FastAPI(
     description="Une API pour transcrire des fichiers audio et traduire le texte",
     version="1.0.0"
 )
-UPLOAD_DIR="voices"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Configuration CORS
 origins = [
@@ -154,9 +151,7 @@ async def transcribe_endpoint(file: UploadFile = File(...), target_language: str
     """
     try:
         # Création d'un fichier temporaire
-        temp_file_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(temp_file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        
         
         # Traitement du fichier
         transcript = await transcribe_audio(temp_file_path)
